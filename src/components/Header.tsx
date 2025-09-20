@@ -9,7 +9,7 @@ export default function Header({ onLogMealClick }: HeaderProps) {
     <div className="flex justify-between items-center mb-8">
       <div className="flex items-center gap-3">
         <img src="/assets/logo.png" alt="Logo" className="w-10 h-10" />
-        <h1 className="text-3xl font-bold text-gray-800 font-inter">Food Dashboard</h1>
+        <img src="/assets/wordmark.png" alt="Food Goggles" className="h-12 w-auto" />
       </div>
       <div 
         className="flex flex-col items-center gap-1 hover:scale-110 transition-transform duration-200 cursor-pointer"

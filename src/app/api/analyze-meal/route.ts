@@ -1,5 +1,38 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { NextRequest, NextResponse } from 'next/server'
+import { PrismaClient } from '@prisma/client'
+
+const prisma = new PrismaClient()
+
+// Function to generate slug based on timestamp and calories
+function generateSlug(timestamp: Date, calories: number): string {
+  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+  const dayOfWeek = dayNames[timestamp.getDay()]
+  
+  const hour = timestamp.getHours()
+  
+  let timePeriod: string
+  if (hour >= 5 && hour < 9) {
+    timePeriod = 'early-morning'
+  } else if (hour >= 9 && hour < 12) {
+    timePeriod = 'late-morning'
+  } else if (hour >= 12 && hour < 14) {
+    timePeriod = 'early-afternoon'
+  } else if (hour >= 14 && hour < 17) {
+    timePeriod = 'late-afternoon'
+  } else if (hour >= 17 && hour < 20) {
+    timePeriod = 'early-evening'
+  } else if (hour >= 20 && hour < 23) {
+    timePeriod = 'late-evening'
+  } else {
+    timePeriod = 'night'
+  }
+  
+  // Determine if it's a snack (< 100 cal) or meal (>= 100 cal)
+  const foodType = calories < 100 ? 'snack' : 'meal'
+  
+  return `${dayOfWeek} ${timePeriod} ${foodType}`
+}
 
 // Initialize Gemini with API key
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
@@ -11,6 +44,18 @@ export interface MealAnalysisResult {
   protein: number
   sugars: number
   notes: string
+}
+
+export interface LogEntryResponse {
+  id: string
+  calories: number
+  fats: number
+  carbohydrates: number
+  protein: number
+  sugars: number
+  notes: string
+  slug: string
+  timestamp: string
 }
 
 export async function POST(request: NextRequest) {
@@ -114,7 +159,38 @@ Return format:
       )
     }
 
-    return NextResponse.json(analysis)
+    // Generate timestamp and slug
+    const timestamp = new Date()
+    const slug = generateSlug(timestamp, analysis.calories)
+
+    // Save the analysis to the database
+    const logEntry = await prisma.logEntry.create({
+      data: {
+        calories: analysis.calories,
+        fats: analysis.fats,
+        carbohydrates: analysis.carbohydrates,
+        proteins: analysis.protein,
+        sugars: analysis.sugars,
+        notes: analysis.notes,
+        slug: slug,
+        timestamp: timestamp,
+      },
+    })
+
+    // Return the log entry with ID for redirect
+    const logEntryResponse: LogEntryResponse = {
+      id: logEntry.id,
+      calories: logEntry.calories,
+      fats: logEntry.fats,
+      carbohydrates: logEntry.carbohydrates,
+      protein: logEntry.proteins,
+      sugars: logEntry.sugars,
+      notes: logEntry.notes,
+      slug: logEntry.slug,
+      timestamp: logEntry.timestamp.toISOString(),
+    }
+
+    return NextResponse.json(logEntryResponse)
   } catch (error) {
     console.error('Error analyzing meal:', error)
     

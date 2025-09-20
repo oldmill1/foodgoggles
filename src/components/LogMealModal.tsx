@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
 interface LogMealModalProps {
   isOpen: boolean
@@ -16,11 +17,26 @@ interface MealAnalysisResult {
   notes: string
 }
 
+interface LogEntryResponse {
+  id: string
+  calories: number
+  fats: number
+  carbohydrates: number
+  protein: number
+  sugars: number
+  notes: string
+  slug: string
+  timestamp: string
+}
+
 export default function LogMealModal({ isOpen, onClose }: LogMealModalProps) {
+  const router = useRouter()
   const [mealText, setMealText] = useState('')
   const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const [analysisResult, setAnalysisResult] = useState<MealAnalysisResult | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [logEntryId, setLogEntryId] = useState<string | null>(null)
 
   // Helper function to check if nutrition values are in healthy ranges
   const isHealthyValue = (nutrient: string, value: number): boolean => {
@@ -34,6 +50,15 @@ export default function LogMealModal({ isOpen, onClose }: LogMealModalProps) {
     
     const range = ranges[nutrient as keyof typeof ranges]
     return value >= range.min && value <= range.max
+  }
+
+  // Helper function to check if the analysis result is an error case
+  const isErrorCase = (result: MealAnalysisResult): boolean => {
+    return result.calories === 0 && 
+           result.fats === 0 && 
+           result.carbohydrates === 0 && 
+           result.protein === 0 && 
+           result.sugars === 0
   }
 
   const analyzeMeal = async (text: string) => {
@@ -54,8 +79,19 @@ export default function LogMealModal({ isOpen, onClose }: LogMealModalProps) {
         throw new Error(errorData.error || 'Failed to analyze meal')
       }
 
-      const result: MealAnalysisResult = await response.json()
-      setAnalysisResult(result)
+      const result: LogEntryResponse = await response.json()
+      
+      console.log('Received result:', result)
+      
+      // Check if this is an error case (no food items detected)
+      if (isErrorCase(result)) {
+        setError("No food items found in your description")
+        setAnalysisResult(null)
+      } else {
+        // Store the log entry ID for redirect
+        setLogEntryId(result.id)
+        setAnalysisResult(result)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
@@ -84,6 +120,8 @@ export default function LogMealModal({ isOpen, onClose }: LogMealModalProps) {
     setAnalysisResult(null)
     setError(null)
     setIsAnalyzing(false)
+    setIsSaving(false)
+    setLogEntryId(null)
   }
 
   useEffect(() => {
@@ -109,12 +147,16 @@ export default function LogMealModal({ isOpen, onClose }: LogMealModalProps) {
 
   return (
     <div className="fixed inset-0 bg-gray-900 bg-opacity-85 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl pt-6 px-4 pb-4 w-full max-w-md mx-4 relative" style={{boxShadow: '0 8px 25px rgba(0, 0, 0, 0.4)'}}>
+      <div className="rounded-2xl pt-6 px-4 pb-4 w-full max-w-md mx-4 relative" style={{backgroundColor: '#fefbf7', boxShadow: '0 8px 25px rgba(0, 0, 0, 0.4)'}}>
         <button
           onClick={onClose}
-          className="absolute top-2 right-3 text-gray-600 hover:text-gray-800 text-xl font-bold transition-colors duration-200"
+          className="absolute top-2 right-2 text-gray-600 hover:text-gray-800 transition-all duration-200 hover:scale-110"
         >
-          ×
+          <img 
+            src="/assets/apple.png" 
+            alt="Close" 
+            className="w-6 h-6"
+          />
         </button>
         <div className="mb-4 text-center">
           {analysisResult && (
@@ -130,14 +172,16 @@ export default function LogMealModal({ isOpen, onClose }: LogMealModalProps) {
             </div>
           )}
           {!analysisResult && (
-            <h2 className="text-2xl font-bold text-gray-900 mb-2 tracking-tight font-inter">
-              Log Your Meal
-            </h2>
-          )}
-          {!analysisResult && (
-            <p className="text-gray-500 text-sm leading-relaxed font-inter">
-              Describe what you ate recently
-            </p>
+            <div className="flex items-center gap-3 mb-2">
+              <img 
+                src="/assets/fruit.jpg" 
+                alt="Fruit bowl" 
+                className="w-12 h-12 rounded-full object-cover"
+              />
+              <h2 className="text-3xl font-normal text-gray-900 tracking-tight font-inter text-left">
+                What did you eat?
+              </h2>
+            </div>
           )}
         </div>
         
@@ -212,28 +256,32 @@ export default function LogMealModal({ isOpen, onClose }: LogMealModalProps) {
             )}
           </div>
         ) : (
-          <textarea
-            value={mealText}
-            onChange={(e) => setMealText(e.target.value)}
-            placeholder="grilled chicken breast with steamed broccoli and brown rice"
-            className="w-full h-24 p-3 rounded-lg resize-none focus:outline-none text-black"
-            style={{
-              boxShadow: '0 0 0 1px rgba(156, 163, 175, 0.3)',
-              transition: 'box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-            }}
-            onFocus={(e) => {
-              e.target.style.boxShadow = '0 0 0 2px rgba(156, 163, 175, 0.3)'
-            }}
-            onBlur={(e) => {
-              e.target.style.boxShadow = '0 0 0 1px rgba(156, 163, 175, 0.3)'
-            }}
-          />
-        )}
-        
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
-            <p className="text-red-600 text-sm">{error}</p>
-          </div>
+          <>
+            {error && (
+              <div className="bg-amber-50/80 border border-amber-200/60 rounded-2xl p-4 mb-4 shadow-sm backdrop-blur-sm animate-in slide-in-from-top-2 fade-in-0 duration-300">
+                <div className="flex items-center gap-3">
+                  <div className="flex-shrink-0 w-2.5 h-2.5 rounded-full bg-amber-400 animate-in zoom-in-50 duration-200 delay-100"></div>
+                  <p className="text-amber-800 text-sm font-medium font-inter leading-snug animate-in slide-in-from-left-2 fade-in-0 duration-300 delay-150">{error}</p>
+                </div>
+              </div>
+            )}
+            <textarea
+              value={mealText}
+              onChange={(e) => setMealText(e.target.value)}
+              placeholder="grilled chicken breast with steamed broccoli and brown rice"
+              className="w-full h-24 p-3 rounded-lg resize-none focus:outline-none text-black"
+              style={{
+                boxShadow: '0 0 0 1px rgba(156, 163, 175, 0.3)',
+                transition: 'box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+              }}
+              onFocus={(e) => {
+                e.target.style.boxShadow = '0 0 0 2px rgba(156, 163, 175, 0.3)'
+              }}
+              onBlur={(e) => {
+                e.target.style.boxShadow = '0 0 0 1px rgba(156, 163, 175, 0.3)'
+              }}
+            />
+          </>
         )}
         
         <div className="flex justify-center gap-4 mt-4">
@@ -249,8 +297,11 @@ export default function LogMealModal({ isOpen, onClose }: LogMealModalProps) {
               <div 
                 className="flex flex-col items-center gap-1 transition-all duration-200 cursor-pointer animate-pulse hover:animate-none"
                 onClick={() => {
-                  // TODO: Implement actual meal logging logic
-                  console.log('Logging meal with analysis:', analysisResult)
+                  if (logEntryId) {
+                    // Show saving state and redirect to log page
+                    setIsSaving(true)
+                    router.push(`/logs/${logEntryId}`)
+                  }
                 }}
                 style={{
                   animation: 'pulse-glow 2s ease-in-out infinite'
@@ -262,17 +313,31 @@ export default function LogMealModal({ isOpen, onClose }: LogMealModalProps) {
                   e.currentTarget.style.animation = 'pulse-glow 2s ease-in-out infinite'
                 }}
               >
-                <img 
-                  src="/assets/hamburger.png" 
-                  alt="Log Meal" 
-                  className="w-10 h-10 transition-opacity duration-200 opacity-100" 
-                />
-                <span 
-                  className="text-sm font-semibold font-inter px-4 py-0.5 bg-white rounded-full shadow-md transition-opacity duration-200 opacity-100" 
-                  style={{color: 'rgba(31, 41, 55, var(--tw-text-opacity, 1))'}}
-                >
-                  Log Meal
-                </span>
+                {isSaving ? (
+                  <>
+                    <div className="w-10 h-10 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
+                    <span 
+                      className="text-sm font-semibold font-inter px-4 py-0.5 bg-white rounded-full shadow-md transition-opacity duration-200 opacity-100" 
+                      style={{color: 'rgba(31, 41, 55, var(--tw-text-opacity, 1))'}}
+                    >
+                      Saving Meal...
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <img 
+                      src="/assets/hamburger.png" 
+                      alt="Log Meal" 
+                      className="w-10 h-10 transition-opacity duration-200 opacity-100" 
+                    />
+                    <span 
+                      className="text-sm font-semibold font-inter px-4 py-0.5 bg-white rounded-full shadow-md transition-opacity duration-200 opacity-100" 
+                      style={{color: 'rgba(31, 41, 55, var(--tw-text-opacity, 1))'}}
+                    >
+                      Log Meal
+                    </span>
+                  </>
+                )}
               </div>
             </div>
           ) : (
