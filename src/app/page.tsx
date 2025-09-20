@@ -5,7 +5,6 @@ import Header from '../components/Header'
 import TodaySummary from '../components/TodaySummary'
 import RecentMeals from '../components/RecentMeals'
 import CaloriesEaten from '../components/CaloriesEaten'
-import MiddleRecentMeals from '../components/MiddleRecentMeals'
 import WeeklyTrends from '../components/WeeklyTrends'
 import FoodInsights from '../components/FoodInsights'
 import LogMealModal from '../components/LogMealModal'
@@ -36,7 +35,6 @@ export default function Home() {
           {/* Middle Column - Calories Eaten */}
           <div className="md:col-span-1 lg:col-span-1 animate-landing" style={{animationDelay: '0.1s'}}>
             <CaloriesEaten />
-            <MiddleRecentMeals />
           </div>
 
           {/* Right Column - Weekly Trends and Food Insights */}

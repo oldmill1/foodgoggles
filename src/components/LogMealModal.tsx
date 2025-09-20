@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { getRandomMeal } from '../data/commonMeals'
 
 interface LogMealModalProps {
   isOpen: boolean
@@ -111,7 +112,7 @@ export default function LogMealModal({ isOpen, onClose }: LogMealModalProps) {
   }
 
   const handleRandomMeal = () => {
-    const randomMeal = "grilled chicken breast with steamed broccoli and brown rice"
+    const randomMeal = getRandomMeal()
     setMealText(randomMeal)
   }
 
