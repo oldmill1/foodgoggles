@@ -20,31 +20,41 @@ async function wipeDatabase() {
   console.log('🗑️  Starting database wipe...');
   
   try {
-    // Disconnect any existing connections
-    await prisma.$disconnect();
+    // Check if we're using PostgreSQL or SQLite
+    const databaseUrl = process.env.DATABASE_URL || '';
+    const isPostgreSQL = databaseUrl.startsWith('postgresql://') || databaseUrl.startsWith('postgres://');
     
-    // Drop the database file (for SQLite)
-    console.log('📁 Dropping database file...');
-    const dbPath = path.join(process.cwd(), 'prisma', 'dev.db');
-    
-    try {
-      const fs = require('fs');
-      if (fs.existsSync(dbPath)) {
-        fs.unlinkSync(dbPath);
-        console.log('✅ Database file deleted');
-      } else {
-        console.log('ℹ️  Database file does not exist');
+    if (isPostgreSQL) {
+      // For PostgreSQL: Truncate all tables
+      console.log('🗑️  Clearing PostgreSQL tables...');
+      await prisma.$executeRaw`TRUNCATE TABLE users, goals, log_entries CASCADE;`;
+      console.log('✅ PostgreSQL tables cleared');
+    } else {
+      // For SQLite: Drop the database file
+      console.log('📁 Dropping SQLite database file...');
+      const dbPath = path.join(process.cwd(), 'prisma', 'dev.db');
+      
+      try {
+        const fs = require('fs');
+        if (fs.existsSync(dbPath)) {
+          fs.unlinkSync(dbPath);
+          console.log('✅ SQLite database file deleted');
+        } else {
+          console.log('ℹ️  SQLite database file does not exist');
+        }
+      } catch (error) {
+        console.log('⚠️  Could not delete SQLite database file:', error);
       }
-    } catch (error) {
-      console.log('⚠️  Could not delete database file:', error);
     }
     
-    // Run Prisma migrations to recreate the schema
-    console.log('🔄 Running Prisma migrations...');
-    execSync('npx prisma migrate deploy', { 
-      stdio: 'inherit',
-      cwd: process.cwd()
-    });
+    // Only run migrations for SQLite (PostgreSQL tables are already there)
+    if (!isPostgreSQL) {
+      console.log('🔄 Running Prisma migrations...');
+      execSync('npx prisma migrate deploy', { 
+        stdio: 'inherit',
+        cwd: process.cwd()
+      });
+    }
     
     // Generate Prisma client
     console.log('🔧 Generating Prisma client...');
