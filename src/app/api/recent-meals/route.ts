@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
+import { getCurrentUser } from '../../../lib/auth'
 
 const prisma = new PrismaClient()
 
@@ -17,8 +18,20 @@ export interface RecentMeal {
 
 export async function GET() {
   try {
+    // Check authentication
+    const user = await getCurrentUser()
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+
     // Fetch the last 3 meals ordered by timestamp (most recent first)
     const recentMeals = await prisma.logEntry.findMany({
+      where: {
+        userId: user.id
+      },
       orderBy: {
         timestamp: 'desc',
       },

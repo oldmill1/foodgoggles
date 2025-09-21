@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
+import { getCurrentUser } from '../../../lib/auth'
 
 const prisma = new PrismaClient()
 
@@ -14,6 +15,15 @@ export interface GoalResponse {
 // GET /api/goals?type=calories
 export async function GET(request: NextRequest) {
   try {
+    // Check authentication
+    const user = await getCurrentUser()
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+
     const { searchParams } = new URL(request.url)
     const type = searchParams.get('type')
 
@@ -24,9 +34,14 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Find goal by type
+    // Find goal by type and userId
     const goal = await prisma.goal.findUnique({
-      where: { type }
+      where: { 
+        userId_type: {
+          userId: user.id,
+          type: type
+        }
+      }
     })
 
     if (!goal) {
@@ -59,6 +74,15 @@ export async function GET(request: NextRequest) {
 // PUT /api/goals
 export async function PUT(request: NextRequest) {
   try {
+    // Check authentication
+    const user = await getCurrentUser()
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+
     const body = await request.json()
     const { type, value } = body
 
@@ -71,9 +95,14 @@ export async function PUT(request: NextRequest) {
 
     // Upsert the goal (create if doesn't exist, update if it does)
     const goal = await prisma.goal.upsert({
-      where: { type },
+      where: { 
+        userId_type: {
+          userId: user.id,
+          type: type
+        }
+      },
       update: { value },
-      create: { type, value }
+      create: { type, value, userId: user.id }
     })
 
     return NextResponse.json({

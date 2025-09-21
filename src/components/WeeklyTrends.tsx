@@ -1,4 +1,23 @@
-export default function WeeklyTrends() {
+interface WeeklyTrendsProps {
+  userId?: string
+}
+
+export default function WeeklyTrends({ userId }: WeeklyTrendsProps) {
+  if (!userId) {
+    return (
+      <div className="bg-white rounded-lg p-6 shadow-sm">
+        <div className="flex items-center mb-6">
+          <img src="/assets/trends.png" alt="Trends" className="w-8 h-8 mr-3" />
+          <h2 className="text-xl font-semibold text-gray-800 font-inter">Weekly Trends</h2>
+        </div>
+        
+        <div className="text-center py-8">
+          <div className="text-gray-500 font-inter">Log in to view your trends</div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="bg-white rounded-lg p-6 shadow-sm">
       <div className="flex items-center mb-6">

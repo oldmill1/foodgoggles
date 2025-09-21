@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
+import { getCurrentUser } from '../../../lib/auth'
 
 const prisma = new PrismaClient()
 
@@ -14,6 +15,15 @@ export interface TodaySummaryResponse {
 
 export async function GET() {
   try {
+    // Check authentication
+    const user = await getCurrentUser()
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+
     // Get today's date range (start and end of today)
     const today = new Date()
     const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate())
@@ -22,6 +32,7 @@ export async function GET() {
     // Fetch all log entries for today
     const todayEntries = await prisma.logEntry.findMany({
       where: {
+        userId: user.id,
         timestamp: {
           gte: startOfDay,
           lte: endOfDay,

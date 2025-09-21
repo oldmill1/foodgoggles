@@ -1,6 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
+import { getCurrentUser } from '../../../lib/auth'
 
 const prisma = new PrismaClient()
 
@@ -60,6 +61,15 @@ export interface LogEntryResponse {
 
 export async function POST(request: NextRequest) {
   try {
+    // Check authentication
+    const user = await getCurrentUser()
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+
     // Check if API key is configured
     if (!process.env.GEMINI_API_KEY) {
       console.error('GEMINI_API_KEY is not configured in environment variables')
@@ -174,6 +184,7 @@ Return format:
         notes: analysis.notes,
         slug: slug,
         timestamp: timestamp,
+        userId: user.id,
       },
     })
 

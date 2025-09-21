@@ -11,12 +11,30 @@ interface TodaySummaryData {
   totalSugars: number
 }
 
-export default function TodaySummary() {
+interface TodaySummaryProps {
+  userId?: string
+}
+
+export default function TodaySummary({ userId }: TodaySummaryProps) {
   const [summary, setSummary] = useState<TodaySummaryData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (!userId) {
+      // Show empty state when not logged in
+      setSummary({
+        mealsLogged: 0,
+        totalCalories: 0,
+        totalProtein: 0,
+        totalCarbohydrates: 0,
+        totalFats: 0,
+        totalSugars: 0
+      })
+      setLoading(false)
+      return
+    }
+
     const fetchTodaySummary = async () => {
       try {
         setLoading(true)
@@ -37,7 +55,7 @@ export default function TodaySummary() {
     }
 
     fetchTodaySummary()
-  }, [])
+  }, [userId])
 
   if (loading) {
     return (

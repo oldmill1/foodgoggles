@@ -10,6 +10,20 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id        String     @id @default(uuid())
+  email     String     @unique
+  password  String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  
+  // Relations
+  logEntries LogEntry[]
+  goals      Goal[]
+  
+  @@map("users")
+}
+
 model LogEntry {
   id            String   @id @default(uuid())
   fats          Float
@@ -21,6 +35,10 @@ model LogEntry {
   slug          String
   timestamp     DateTime @default(now())
   
+  // Relations
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
   @@map("log_entries")
 }
 
@@ -31,6 +49,10 @@ model Goal {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
-  @@unique([type])
+  // Relations
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, type])
   @@map("goals")
 }

@@ -57,12 +57,23 @@ function formatMealName(slug: string): string {
     .join(' ')
 }
 
-export default function RecentMeals() {
+interface RecentMealsProps {
+  userId?: string
+}
+
+export default function RecentMeals({ userId }: RecentMealsProps) {
   const [meals, setMeals] = useState<RecentMeal[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (!userId) {
+      // Show empty state when not logged in
+      setMeals([])
+      setLoading(false)
+      return
+    }
+
     const fetchRecentMeals = async () => {
       try {
         setLoading(true)
@@ -83,7 +94,7 @@ export default function RecentMeals() {
     }
 
     fetchRecentMeals()
-  }, [])
+  }, [userId])
 
   if (loading) {
     return (

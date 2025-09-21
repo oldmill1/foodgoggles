@@ -13,9 +13,10 @@ interface TodaySummaryData {
 
 interface CaloriesEatenProps {
   onGoalIconClick: () => void
+  userId?: string
 }
 
-export default function CaloriesEaten({ onGoalIconClick }: CaloriesEatenProps) {
+export default function CaloriesEaten({ onGoalIconClick, userId }: CaloriesEatenProps) {
   const [summary, setSummary] = useState<TodaySummaryData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -23,9 +24,25 @@ export default function CaloriesEaten({ onGoalIconClick }: CaloriesEatenProps) {
   const [goalLoading, setGoalLoading] = useState(true)
 
   useEffect(() => {
+    if (!userId) {
+      // Show empty state when not logged in
+      setSummary({
+        mealsLogged: 0,
+        totalCalories: 0,
+        totalProtein: 0,
+        totalCarbohydrates: 0,
+        totalFats: 0,
+        totalSugars: 0
+      })
+      setGoalCalories(3500) // Default goal
+      setLoading(false)
+      setGoalLoading(false)
+      return
+    }
+
     fetchTodaySummary()
     fetchGoal()
-  }, [])
+  }, [userId])
 
   const fetchTodaySummary = async () => {
     try {

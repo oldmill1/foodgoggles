@@ -7,6 +7,7 @@ interface GoalModalProps {
   onClose: () => void
   goalType: string
   onGoalUpdated: (newValue: number) => void
+  userId?: string
 }
 
 interface GoalData {
@@ -16,7 +17,7 @@ interface GoalData {
   isDefault: boolean
 }
 
-export default function GoalModal({ isOpen, onClose, goalType, onGoalUpdated }: GoalModalProps) {
+export default function GoalModal({ isOpen, onClose, goalType, onGoalUpdated, userId }: GoalModalProps) {
   const [goal, setGoal] = useState<GoalData | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)

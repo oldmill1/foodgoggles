@@ -7,6 +7,7 @@ import { getRandomMeal } from '../data/commonMeals'
 interface LogMealModalProps {
   isOpen: boolean
   onClose: () => void
+  userId?: string
 }
 
 interface MealAnalysisResult {
@@ -30,7 +31,7 @@ interface LogEntryResponse {
   timestamp: string
 }
 
-export default function LogMealModal({ isOpen, onClose }: LogMealModalProps) {
+export default function LogMealModal({ isOpen, onClose, userId }: LogMealModalProps) {
   const router = useRouter()
   const [mealText, setMealText] = useState('')
   const [isAnalyzing, setIsAnalyzing] = useState(false)
