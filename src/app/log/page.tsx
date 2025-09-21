@@ -316,7 +316,7 @@ export default function LogPage() {
                 
                 {searchQuery && (
                   <div className="text-sm text-gray-600">
-                    {filteredLogEntries.length} result{filteredLogEntries.length !== 1 ? "s" : ""} found
+                    {filteredLogEntries.length} result{filteredLogEntries.length !== 1 ? 's' : ''} found
                     {pagination && (
                       <span className="ml-2 text-gray-400">
                         (of {pagination.total} total entries)
