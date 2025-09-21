@@ -13,6 +13,7 @@
 
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { randomUUID } from 'crypto';
 
 const prisma = new PrismaClient();
 
@@ -109,9 +110,14 @@ async function installTestUser() {
     ];
     
     for (const meal of sampleMeals) {
+      // Generate slugId in format: <slug>-<uuid>
+      const uuid = randomUUID();
+      const slugId = `${meal.slug}-${uuid}`;
+      
       await prisma.logEntry.create({
         data: {
           ...meal,
+          slugId: slugId,
           userId: testUser.id,
           timestamp: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000), // Random time within last week
         }

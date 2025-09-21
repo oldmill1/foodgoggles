@@ -11,6 +11,7 @@
  */
 
 import { PrismaClient } from '@prisma/client';
+import { randomUUID } from 'crypto';
 
 const prisma = new PrismaClient();
 
@@ -210,9 +211,15 @@ async function generateLogEntries() {
     const logEntries = [];
     for (let i = 0; i < 20; i++) {
       const meal = getRandomMeal();
+      
+      // Generate slugId in format: <slug>-<uuid>
+      const uuid = randomUUID();
+      const slugId = `${meal.slug}-${uuid}`;
+      
       const logEntry = await prisma.logEntry.create({
         data: {
           ...meal,
+          slugId: slugId,
           userId: testUser.id,
           timestamp: timestamps[i],
         }
@@ -234,6 +241,7 @@ async function generateLogEntries() {
     console.log('\n🍽️  Sample entries:');
     logEntries.slice(0, 3).forEach((entry, index) => {
       console.log(`   ${index + 1}. ${entry.timestamp.toLocaleDateString()} - ${entry.notes} (${entry.calories} cal)`);
+      console.log(`      SlugId: ${entry.slugId}`);
     });
     
     console.log('\n✅ Log entries generated successfully!');

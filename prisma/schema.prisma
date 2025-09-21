@@ -26,6 +26,7 @@ model User {
 
 model LogEntry {
   id            String   @id @default(uuid())
+  slugId        String   @unique // Format: <slug>-<uuid>
   fats          Float
   sugars        Float
   carbohydrates Float

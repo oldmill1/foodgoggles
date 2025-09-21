@@ -5,36 +5,6 @@ import { getCurrentUser } from '../../../lib/auth'
 
 const prisma = new PrismaClient()
 
-// Function to generate slug based on timestamp and calories
-function generateSlug(timestamp: Date, calories: number): string {
-  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-  const dayOfWeek = dayNames[timestamp.getDay()]
-  
-  const hour = timestamp.getHours()
-  
-  let timePeriod: string
-  if (hour >= 5 && hour < 9) {
-    timePeriod = 'early-morning'
-  } else if (hour >= 9 && hour < 12) {
-    timePeriod = 'late-morning'
-  } else if (hour >= 12 && hour < 14) {
-    timePeriod = 'early-afternoon'
-  } else if (hour >= 14 && hour < 17) {
-    timePeriod = 'late-afternoon'
-  } else if (hour >= 17 && hour < 20) {
-    timePeriod = 'early-evening'
-  } else if (hour >= 20 && hour < 23) {
-    timePeriod = 'late-evening'
-  } else {
-    timePeriod = 'night'
-  }
-  
-  // Determine if it's a snack (< 100 cal) or meal (>= 100 cal)
-  const foodType = calories < 100 ? 'snack' : 'meal'
-  
-  return `${dayOfWeek} ${timePeriod} ${foodType}`
-}
-
 // Initialize Gemini with API key
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 
@@ -45,10 +15,12 @@ export interface MealAnalysisResult {
   protein: number
   sugars: number
   notes: string
+  slug: string
 }
 
 export interface LogEntryResponse {
   id: string
+  slugId: string
   calories: number
   fats: number
   carbohydrates: number
@@ -95,11 +67,11 @@ export async function POST(request: NextRequest) {
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
 
     const prompt = `
-You are a nutrition analysis expert. Analyze the following meal description and return ONLY a JSON object with the nutritional information.
+You are a nutrition analysis expert. Analyze the following meal description and return ONLY a JSON object with the nutritional information and a descriptive slug.
 
 IMPORTANT RULES:
 1. Return ONLY valid JSON, no other text
-2. All values must be numbers (except notes)
+2. All values must be numbers (except notes and slug)
 3. Use these default units:
    - calories: kcal
    - fats: grams
@@ -109,6 +81,7 @@ IMPORTANT RULES:
 4. Be realistic and conservative in your estimates
 5. If unsure about quantities, make reasonable assumptions based on typical serving sizes
 6. Include helpful notes about the analysis
+7. Create a descriptive slug using lowercase letters, hyphens, and key food items (e.g., "turkey-avocado-wrap-mixed-greens", "grilled-chicken-quinoa-broccoli")
 
 Meal description: "${mealText}"
 
@@ -119,7 +92,8 @@ Return format:
   "carbohydrates": number,
   "protein": number,
   "sugars": number,
-  "notes": "string"
+  "notes": "string",
+  "slug": "descriptive-meal-name-with-hyphens"
 }`
 
     const result = await model.generateContent(prompt)
@@ -161,7 +135,8 @@ Return format:
       typeof analysis.carbohydrates !== 'number' ||
       typeof analysis.protein !== 'number' ||
       typeof analysis.sugars !== 'number' ||
-      typeof analysis.notes !== 'string'
+      typeof analysis.notes !== 'string' ||
+      typeof analysis.slug !== 'string'
     ) {
       return NextResponse.json(
         { error: 'Invalid nutrition analysis format' },
@@ -169,9 +144,12 @@ Return format:
       )
     }
 
-    // Generate timestamp and slug
+    // Generate timestamp and use AI-generated slug
     const timestamp = new Date()
-    const slug = generateSlug(timestamp, analysis.calories)
+    
+    // Generate slugId in format: <slug>-<uuid>
+    const uuid = crypto.randomUUID()
+    const slugId = `${analysis.slug}-${uuid}`
 
     // Save the analysis to the database
     const logEntry = await prisma.logEntry.create({
@@ -182,7 +160,8 @@ Return format:
         proteins: analysis.protein,
         sugars: analysis.sugars,
         notes: analysis.notes,
-        slug: slug,
+        slug: analysis.slug,
+        slugId: slugId,
         timestamp: timestamp,
         userId: user.id,
       },
@@ -191,6 +170,7 @@ Return format:
     // Return the log entry with ID for redirect
     const logEntryResponse: LogEntryResponse = {
       id: logEntry.id,
+      slugId: logEntry.slugId,
       calories: logEntry.calories,
       fats: logEntry.fats,
       carbohydrates: logEntry.carbohydrates,

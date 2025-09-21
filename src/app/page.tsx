@@ -92,7 +92,7 @@ export default function Home() {
 
   if (isLoading) {
     return (
-      <div className="p-6 flex items-center justify-center min-h-screen" style={{backgroundColor: '#fefbf7'}}>
+      <div className="p-6 flex items-center justify-center min-h-screen">
         <div className="text-center">
           <img src="/assets/logo.png" alt="Logo" className="w-16 h-16 mx-auto mb-4 animate-pulse" />
           <p className="text-gray-600">Loading...</p>
@@ -102,7 +102,7 @@ export default function Home() {
   }
 
   return (
-    <div className="p-6" style={{backgroundColor: '#fefbf7'}}>
+    <div className="p-6">
       <div className="max-w-7xl mx-auto min-w-0">
         <Header 
           onLogMealClick={handleLogMealClick} 

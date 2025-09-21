@@ -21,6 +21,7 @@ interface MealAnalysisResult {
 
 interface LogEntryResponse {
   id: string
+  slugId: string
   calories: number
   fats: number
   carbohydrates: number
@@ -38,7 +39,7 @@ export default function LogMealModal({ isOpen, onClose, userId }: LogMealModalPr
   const [isSaving, setIsSaving] = useState(false)
   const [analysisResult, setAnalysisResult] = useState<MealAnalysisResult | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [logEntryId, setLogEntryId] = useState<string | null>(null)
+  const [logEntrySlugId, setLogEntrySlugId] = useState<string | null>(null)
 
   // Helper function to check if nutrition values are in healthy ranges
   const isHealthyValue = (nutrient: string, value: number): boolean => {
@@ -90,8 +91,8 @@ export default function LogMealModal({ isOpen, onClose, userId }: LogMealModalPr
         setError("No food items found in your description")
         setAnalysisResult(null)
       } else {
-        // Store the log entry ID for redirect
-        setLogEntryId(result.id)
+        // Store the log entry slugId for redirect
+        setLogEntrySlugId(result.slugId)
         setAnalysisResult(result)
       }
     } catch (err) {
@@ -123,7 +124,7 @@ export default function LogMealModal({ isOpen, onClose, userId }: LogMealModalPr
     setError(null)
     setIsAnalyzing(false)
     setIsSaving(false)
-    setLogEntryId(null)
+    setLogEntrySlugId(null)
   }
 
   useEffect(() => {
@@ -299,10 +300,10 @@ export default function LogMealModal({ isOpen, onClose, userId }: LogMealModalPr
               <div 
                 className="flex flex-col items-center gap-1 transition-all duration-200 cursor-pointer animate-pulse hover:animate-none"
                 onClick={() => {
-                  if (logEntryId) {
+                  if (logEntrySlugId) {
                     // Show saving state and redirect to log page
                     setIsSaving(true)
-                    router.push(`/logs/${logEntryId}`)
+                    router.push(`/logs/${logEntrySlugId}`)
                   }
                 }}
                 style={{

@@ -1,5 +1,7 @@
 'use client'
 
+import Link from 'next/link'
+
 interface HeaderProps {
   onLogMealClick: () => void
   onAuthClick: () => void
@@ -10,10 +12,10 @@ interface HeaderProps {
 export default function Header({ onLogMealClick, onAuthClick, isLoggedIn, userEmail }: HeaderProps) {
   return (
     <div className="flex justify-between items-center mb-8">
-      <div className="flex items-center gap-3">
+      <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity duration-200">
         <img src="/assets/logo.png" alt="Logo" className="w-10 h-10" />
         <img src="/assets/wordmark.png" alt="Food Goggles" className="h-12 w-auto" />
-      </div>
+      </Link>
       
       <div className="flex items-center gap-4">
         <div 

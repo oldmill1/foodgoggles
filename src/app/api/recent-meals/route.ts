@@ -6,6 +6,7 @@ const prisma = new PrismaClient()
 
 export interface RecentMeal {
   id: string
+  slugId: string
   calories: number
   proteins: number
   carbohydrates: number
@@ -41,6 +42,7 @@ export async function GET() {
     // Transform the data to match our interface
     const meals: RecentMeal[] = recentMeals.map(meal => ({
       id: meal.id,
+      slugId: meal.slugId,
       calories: meal.calories,
       proteins: meal.proteins,
       carbohydrates: meal.carbohydrates,

@@ -1,6 +1,12 @@
+'use client'
+
 import { PrismaClient } from '@prisma/client'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import { useState, useEffect } from 'react'
+import Header from '../../../components/Header'
+import LoginModal from '../../../components/LoginModal'
+import LogMealModal from '../../../components/LogMealModal'
 
 const prisma = new PrismaClient()
 
@@ -10,20 +16,83 @@ interface LogEntryPageProps {
   }
 }
 
-export default async function LogEntryPage({ params }: LogEntryPageProps) {
-  const { id } = await params
-  const logId = id
-  
-  if (!logId || typeof logId !== 'string') {
-    notFound()
+interface User {
+  id: string
+  email: string
+}
+
+export default function LogEntryPage({ params }: LogEntryPageProps) {
+  const [user, setUser] = useState<User | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [logEntry, setLogEntry] = useState<any>(null)
+  const [isLogModalOpen, setIsLogModalOpen] = useState(false)
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
+
+  useEffect(() => {
+    checkAuthStatus()
+    fetchLogEntry()
+  }, [])
+
+  const checkAuthStatus = async () => {
+    try {
+      const response = await fetch('/api/auth/session')
+      const data = await response.json()
+      setUser(data.user)
+    } catch (error) {
+      console.error('Error checking auth status:', error)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  const logEntry = await prisma.logEntry.findUnique({
-    where: { id: logId }
-  })
+  const fetchLogEntry = async () => {
+    const { id } = await params
+    const slugId = id
+    
+    if (!slugId || typeof slugId !== 'string') {
+      notFound()
+    }
 
-  if (!logEntry) {
-    notFound()
+    try {
+      const response = await fetch(`/api/logs/${slugId}`)
+      if (!response.ok) {
+        notFound()
+      }
+      const data = await response.json()
+      setLogEntry(data)
+    } catch (error) {
+      console.error('Error fetching log entry:', error)
+      notFound()
+    }
+  }
+
+  const handleLogMealClick = () => {
+    if (!user) {
+      setIsLoginModalOpen(true)
+      return
+    }
+    setIsLogModalOpen(true)
+  }
+
+  const handleAuthClick = () => {
+    if (user) {
+      handleLogout()
+    } else {
+      setIsLoginModalOpen(true)
+    }
+  }
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/login', { method: 'DELETE' })
+      setUser(null)
+    } catch (error) {
+      console.error('Logout error:', error)
+    }
+  }
+
+  const handleLoginSuccess = () => {
+    checkAuthStatus()
   }
 
   // Helper function to check if nutrition values are in healthy ranges
@@ -40,7 +109,8 @@ export default async function LogEntryPage({ params }: LogEntryPageProps) {
     return value >= range.min && value <= range.max
   }
 
-  const formatTimestamp = (timestamp: Date) => {
+  const formatTimestamp = (timestamp: Date | string) => {
+    const date = typeof timestamp === 'string' ? new Date(timestamp) : timestamp
     return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
       month: 'long',
@@ -48,12 +118,39 @@ export default async function LogEntryPage({ params }: LogEntryPageProps) {
       hour: '2-digit',
       minute: '2-digit',
       hour12: true
-    }).format(timestamp)
+    }).format(date)
+  }
+
+  const formatMealName = (slug: string): string => {
+    // Convert "turkey-avocado-wrap-mixed-greens" to "Turkey Avocado Wrap Mixed Greens"
+    return slug
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ')
+  }
+
+  if (isLoading || !logEntry) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <img src="/assets/logo.png" alt="Logo" className="w-16 h-16 mx-auto mb-4 animate-pulse" />
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 p-4 md:p-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto min-w-0">
+        <Header 
+          onLogMealClick={handleLogMealClick} 
+          onAuthClick={handleAuthClick}
+          isLoggedIn={!!user}
+          userEmail={user?.email}
+        />
+
+        <main className="min-h-screen p-4 md:p-8">
+          <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <Link 
@@ -63,7 +160,7 @@ export default async function LogEntryPage({ params }: LogEntryPageProps) {
             ← Back to Dashboard
           </Link>
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-            {logEntry.slug}
+            {formatMealName(logEntry.slug)}
           </h1>
           <p className="text-gray-600 text-lg">
             Logged on {formatTimestamp(logEntry.timestamp)}
@@ -170,28 +267,6 @@ export default async function LogEntryPage({ params }: LogEntryPageProps) {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Quick Stats */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Quick Stats</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Total Calories</span>
-                  <span className="font-semibold text-gray-900">{logEntry.calories} kcal</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Protein Ratio</span>
-                  <span className="font-semibold text-gray-900">{((logEntry.proteins * 4) / logEntry.calories * 100).toFixed(1)}%</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Carb Ratio</span>
-                  <span className="font-semibold text-gray-900">{((logEntry.carbohydrates * 4) / logEntry.calories * 100).toFixed(1)}%</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Fat Ratio</span>
-                  <span className="font-semibold text-gray-900">{((logEntry.fats * 9) / logEntry.calories * 100).toFixed(1)}%</span>
-                </div>
-              </div>
-            </div>
 
             {/* Actions */}
             <div className="pt-0 pb-6 px-6">
@@ -220,5 +295,13 @@ export default async function LogEntryPage({ params }: LogEntryPageProps) {
         </div>
       </div>
     </main>
+
+        <LogMealModal isOpen={isLogModalOpen} onClose={() => setIsLogModalOpen(false)} userId={user?.id} />
+        <LoginModal 
+          isOpen={isLoginModalOpen}
+          onClose={() => setIsLoginModalOpen(false)}
+          onLoginSuccess={handleLoginSuccess}
+        />
+    </div>
   )
 }

@@ -1,9 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 
 interface RecentMeal {
   id: string
+  slugId: string
   calories: number
   proteins: number
   carbohydrates: number
@@ -50,9 +52,9 @@ function getMealBgColor(slug: string): string {
 
 // Function to format slug into a readable meal name
 function formatMealName(slug: string): string {
-  // Convert "Monday early-afternoon meal" to "Monday Early Afternoon Meal"
+  // Convert "turkey-avocado-wrap-mixed-greens" to "Turkey Avocado Wrap Mixed Greens"
   return slug
-    .split(' ')
+    .split('-')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ')
 }
@@ -101,7 +103,9 @@ export default function RecentMeals({ userId }: RecentMealsProps) {
       <div className="bg-white rounded-lg p-6 shadow-sm mt-6">
         <div className="flex items-center mb-6">
           <img src="/assets/fruit.jpg" alt="Fruit" className="w-8 h-8 mr-3" />
-          <h3 className="text-xl font-semibold text-gray-800 font-inter">Recent Meals</h3>
+          <Link href="/log" className="text-xl font-semibold text-gray-800 font-inter hover:text-blue-600 transition-colors duration-200 cursor-pointer">
+            Recent Meals
+          </Link>
         </div>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -125,7 +129,9 @@ export default function RecentMeals({ userId }: RecentMealsProps) {
       <div className="bg-white rounded-lg p-6 shadow-sm mt-6">
         <div className="flex items-center mb-6">
           <img src="/assets/fruit.jpg" alt="Fruit" className="w-8 h-8 mr-3" />
-          <h3 className="text-xl font-semibold text-gray-800 font-inter">Recent Meals</h3>
+          <Link href="/log" className="text-xl font-semibold text-gray-800 font-inter hover:text-blue-600 transition-colors duration-200 cursor-pointer">
+            Recent Meals
+          </Link>
         </div>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -172,7 +178,9 @@ export default function RecentMeals({ userId }: RecentMealsProps) {
     <div className="bg-white rounded-lg p-6 shadow-sm mt-6">
       <div className="flex items-center mb-6">
         <img src="/assets/fruit.jpg" alt="Fruit" className="w-8 h-8 mr-3" />
-        <h3 className="text-xl font-semibold text-gray-800 font-inter">Recent Meals</h3>
+        <Link href="/log" className="text-xl font-semibold text-gray-800 font-inter hover:text-blue-600 transition-colors duration-200 cursor-pointer">
+          Recent Meals
+        </Link>
       </div>
       
       <div className="space-y-4">
@@ -183,7 +191,12 @@ export default function RecentMeals({ userId }: RecentMealsProps) {
                 <img src="/assets/food.png" alt="Food" className="w-8 h-8" />
               </div>
               <div className="flex-1">
-                <h4 className="text-lg font-normal text-gray-800 font-inter hover:text-gray-600 transition-colors duration-200 cursor-pointer mb-2">{formatMealName(meal.slug)}</h4>
+                <Link 
+                  href={`/logs/${meal.slugId}`}
+                  className="text-lg font-normal text-gray-800 font-inter hover:text-blue-600 transition-colors duration-200 cursor-pointer mb-2 block"
+                >
+                  {formatMealName(meal.slug)}
+                </Link>
                 <div className="flex items-center gap-3 mt-1">
                   <span className="text-lg text-gray-500 font-medium font-inter">🥑 {Math.round(meal.fats)}g</span>
                   <span className="text-lg text-gray-500 font-medium font-inter">⚡ {Math.round(meal.carbohydrates)}g</span>
