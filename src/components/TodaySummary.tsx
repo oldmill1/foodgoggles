@@ -41,13 +41,13 @@ export default function TodaySummary({ userId }: TodaySummaryProps) {
         const response = await fetch('/api/today-summary')
         
         if (!response.ok) {
-          throw new Error('Failed to fetch today\'s summary')
+          throw new Error('Failed to fetch today&apos;s summary')
         }
         
         const data = await response.json()
         setSummary(data)
       } catch (err) {
-        console.error('Error fetching today\'s summary:', err)
+        console.error('Error fetching today&apos;s summary:', err)
         setError(err instanceof Error ? err.message : 'An error occurred')
       } finally {
         setLoading(false)
@@ -60,7 +60,7 @@ export default function TodaySummary({ userId }: TodaySummaryProps) {
   if (loading) {
     return (
       <div className="bg-white rounded-lg p-6 shadow-sm">
-        <h2 className="text-xl font-semibold text-gray-800 mb-6 font-inter">Today's Summary</h2>
+        <h2 className="text-xl font-semibold text-gray-800 mb-6 font-inter">Today&apos;s Summary</h2>
         <div className="space-y-2">
           <div className="flex justify-between items-center">
             <span className="text-lg font-light text-gray-700 font-inter">Loading...</span>
@@ -74,7 +74,7 @@ export default function TodaySummary({ userId }: TodaySummaryProps) {
   if (error) {
     return (
       <div className="bg-white rounded-lg p-6 shadow-sm">
-        <h2 className="text-xl font-semibold text-gray-800 mb-6 font-inter">Today's Summary</h2>
+        <h2 className="text-xl font-semibold text-gray-800 mb-6 font-inter">Today&apos;s Summary</h2>
         <div className="space-y-2">
           <div className="flex justify-between items-center">
             <span className="text-lg font-light text-red-600 font-inter">Error loading data</span>
@@ -87,7 +87,7 @@ export default function TodaySummary({ userId }: TodaySummaryProps) {
 
   return (
     <div className="bg-white rounded-lg p-6 shadow-sm">
-      <h2 className="text-xl font-semibold text-gray-800 mb-6 font-inter">Today's Summary</h2>
+      <h2 className="text-xl font-semibold text-gray-800 mb-6 font-inter">Today&apos;s Summary</h2>
       
       <div className="space-y-2">
         <div className="flex justify-between items-center">

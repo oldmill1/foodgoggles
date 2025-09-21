@@ -4,12 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbo",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
     "db:wipe": "tsx scripts/wipe-db.ts",
     "db:seed": "tsx scripts/install-test-user.ts",
-    "db:logs": "tsx scripts/generate-log-entries.ts"
+    "db:logs": "tsx scripts/generate-log-entries.ts",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

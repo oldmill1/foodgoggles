@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Area, AreaChart } from 'recharts'
 
 interface WeeklyTrendsProps {
@@ -46,7 +47,7 @@ export default function WeeklyTrends({ userId }: WeeklyTrendsProps) {
     return (
       <div className="bg-white rounded-lg p-6 shadow-sm">
         <div className="flex items-center mb-6">
-          <img src="/assets/trends.png" alt="Trends" className="w-8 h-8 mr-3" />
+          <Image src="/assets/trends.png" alt="Trends" width={32} height={32} className="mr-3" />
           <h2 className="text-xl font-semibold text-gray-800 font-inter">Trends</h2>
         </div>
         
@@ -61,7 +62,7 @@ export default function WeeklyTrends({ userId }: WeeklyTrendsProps) {
     return (
       <div className="bg-white rounded-lg p-6 shadow-sm">
         <div className="flex items-center mb-6">
-          <img src="/assets/trends.png" alt="Trends" className="w-8 h-8 mr-3" />
+          <Image src="/assets/trends.png" alt="Trends" width={32} height={32} className="mr-3" />
           <h2 className="text-xl font-semibold text-gray-800 font-inter">Trends</h2>
         </div>
         
