@@ -8,9 +8,12 @@ import CaloriesEaten from '../components/CaloriesEaten'
 import WeeklyTrends from '../components/WeeklyTrends'
 import FoodInsights from '../components/FoodInsights'
 import LogMealModal from '../components/LogMealModal'
+import GoalModal from '../components/GoalModal'
 
 export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isGoalModalOpen, setIsGoalModalOpen] = useState(false)
+  const [goalUpdateTrigger, setGoalUpdateTrigger] = useState(0)
 
   const handleLogMealClick = () => {
     setIsModalOpen(true)
@@ -18,6 +21,19 @@ export default function Home() {
 
   const handleCloseModal = () => {
     setIsModalOpen(false)
+  }
+
+  const handleGoalModalClick = () => {
+    setIsGoalModalOpen(true)
+  }
+
+  const handleCloseGoalModal = () => {
+    setIsGoalModalOpen(false)
+  }
+
+  const handleGoalUpdated = () => {
+    // Trigger a refresh of the CaloriesEaten component
+    setGoalUpdateTrigger(prev => prev + 1)
   }
 
   return (
@@ -34,7 +50,7 @@ export default function Home() {
 
           {/* Middle Column - Calories Eaten */}
           <div className="md:col-span-1 lg:col-span-1 animate-landing" style={{animationDelay: '0.1s'}}>
-            <CaloriesEaten />
+            <CaloriesEaten onGoalIconClick={handleGoalModalClick} key={goalUpdateTrigger} />
           </div>
 
           {/* Right Column - Weekly Trends and Food Insights */}
@@ -46,6 +62,12 @@ export default function Home() {
       </div>
 
       <LogMealModal isOpen={isModalOpen} onClose={handleCloseModal} />
+      <GoalModal 
+        isOpen={isGoalModalOpen} 
+        onClose={handleCloseGoalModal}
+        goalType="calories"
+        onGoalUpdated={handleGoalUpdated}
+      />
     </div>
   )
 }

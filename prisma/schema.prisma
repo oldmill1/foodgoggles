@@ -23,3 +23,14 @@ model LogEntry {
   
   @@map("log_entries")
 }
+
+model Goal {
+  id        String   @id @default(uuid())
+  type      String   // e.g., "calories", "protein", "carbs", etc.
+  value     Float    // the target value
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([type])
+  @@map("goals")
+}
