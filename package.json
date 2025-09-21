@@ -6,7 +6,10 @@
     "dev": "next dev --turbo",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "db:wipe": "tsx scripts/wipe-db.ts",
+    "db:seed": "tsx scripts/install-test-user.ts",
+    "db:logs": "tsx scripts/generate-log-entries.ts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
@@ -27,6 +30,7 @@
     "eslint-config-next": "^15.5.0",
     "postcss": "^8.4.39",
     "tailwindcss": "^3.4.4",
+    "tsx": "^4.20.5",
     "typescript": "^5.5.0"
   }
 }

@@ -52,7 +52,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
   }
 
   const handleTestUserLogin = () => {
-    handleLogin('test@test.com', 'PassWord@123#1')
+    handleLogin('test@example.com', 'testpassword123')
   }
 
   return (
