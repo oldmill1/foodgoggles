@@ -192,7 +192,7 @@ export default function GoalModal({ isOpen, onClose, goalType, onGoalUpdated, us
             {goal?.isDefault && (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <div className="text-sm text-blue-800 font-inter">
-                  <strong>Default Value:</strong> This goal hasn't been set yet. The current value ({goal.value} {getGoalTypeUnit(goalType)}) is a default.
+                  <strong>Default Value:</strong> This goal hasn&apos;t been set yet. The current value ({goal.value} {getGoalTypeUnit(goalType)}) is a default.
                 </div>
               </div>
             )}

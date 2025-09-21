@@ -11,9 +11,9 @@ import LogMealModal from '../../../components/LogMealModal'
 const prisma = new PrismaClient()
 
 interface LogEntryPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 interface User {

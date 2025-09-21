@@ -4,7 +4,7 @@ import { getCurrentUser } from '../../../../lib/auth'
 
 const prisma = new PrismaClient()
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     // Check authentication
     const user = await getCurrentUser()
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       )
     }
 
-    const { id } = params
+    const { id } = await params
     const slugId = id
 
     if (!slugId || typeof slugId !== 'string') {
